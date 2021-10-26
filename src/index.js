@@ -11,7 +11,7 @@ const server = http.createServer();
 
 const allowedFormats = ['video/mp4', 'video/mov', 'video/avi'];
 const idRegexp = /^\/[0-9]{1,20}-[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i;
-const storage = join(process.cwd(), 'public', 'videos');
+const storage = join(process.cwd(), 'public');
 const extension = '.mp4';
 
 const uploader = (req) => {
