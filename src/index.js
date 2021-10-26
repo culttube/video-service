@@ -11,7 +11,7 @@ const server = http.createServer();
 
 const allowedFormats = ['video/mp4', 'video/mov', 'video/avi'];
 const idRegexp = /^\/[0-9]{1,20}-[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i;
-const storage = join(process.cwd(), 'public');
+const storage = join(process.cwd(), 'storage');
 const extension = '.mp4';
 
 const uploader = (req) => {
@@ -43,6 +43,7 @@ const handleError = (res, code, err) => {
 }
 
 server.on('request', async (req, res) => {
+
     const u = new URL(req.url, fullHost);
     const {pathname} = u;
     const isGetMethod = req.method === 'GET';
@@ -103,6 +104,17 @@ server.on('request', async (req, res) => {
         } catch (err) {
             return handleError(res, 400, err);
         }
+    }
+
+
+    if (isGetMethod && pathname === '/client') {
+        const stream = createReadStream(join(process.cwd(), 'public', 'index.html'))
+        return stream.pipe(res)
+    }
+
+    if (isGetMethod && pathname === '/tailwind.css') {
+        const stream = createReadStream(join(process.cwd(), 'public', 'tailwind.css'))
+        return stream.pipe(res)
     }
 
     res.statusCode = 404;

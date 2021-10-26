@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="/tailwind.css" rel="stylesheet">
+    <style>[hidden] { display: none}</style>
+</head>
+<body>
+<div class="max-w-5xl mx-auto">
+    <div class="flex justify-between items-center pt-12">
+        <h1 class="text-xl font-bold">Super Video Service</h1>
+    </div>
+
+    <form id="upload-form" class="flex items-center my-12">
+        <div class="mr-2">
+            <input  id="video" name="video" accept="video/avi, video/mov, video/mp4" type="file">
+        </div>
+        <button class="bg-green-400 cursor-pointer hover:bg-green-300 transition text-sm rounded px-12 h-10 inline-flex items-center"
+                type="submit">Upload
+        </button>
+    </form>
+
+    <ul class="px-10 py-4 mb-12 list-decimal bg-gray-200 rounded" id="list"></ul>
+
+    <div id="videoPlayerContainer" class="relative bg-blue-100 mb-12" style="padding-top: 56.25%" hidden>
+        <video class="absolute inset-0 w-full h-full" id="videoPlayer" controls>
+            <source src="" type="video/mp4">
+        </video>
+    </div>
+
+    <div class="fixed right-4 top-4 rounded bg-blue-200 p-4" id="message"></div>
+</div>
+<script>
+    (async () => {
+        const videoPlayerContainer = document.getElementById('videoPlayerContainer');
+        const videoPlayer = document.getElementById('videoPlayer');
+        const messageContainer = document.getElementById('message');
+        const uploadForm = document.getElementById('upload-form');
+        const listContainer = document.getElementById('list');
+
+        const upload = async (ev) => {
+            const data = new FormData(ev.target);
+            if (!data.get('video').size) {
+                return;
+            }
+            try {
+                const res = await fetch('http://localhost:3000/upload', {
+                    method: 'post',
+                    body: data.get('video'),
+                }).then(r => r.json());
+                messageContainer.innerText = res.message;
+                append(res.url);
+
+                setTimeout(() => {
+                    messageContainer.innerText = '';
+                }, 3000)
+            } catch (err) {
+                console.log(err)
+            }
+        }
+
+        uploadForm.addEventListener('submit', async (ev) => {
+            ev.preventDefault();
+            await upload(ev);
+        });
+
+
+        const fetchList = async () => {
+            const result = await fetch('http://localhost:3000');
+            const {data} = await result.json();
+
+            data.forEach(append)
+        };
+
+
+        const append = (file) => {
+            const item = document.createElement('li');
+            item.classList = 'my-3 cursor-pointer hover:underline';
+            item.innerText = file;
+            item.dataset.url = file;
+            listContainer.appendChild(item);
+        }
+
+        await fetchList();
+
+        listContainer.addEventListener('click', e => {
+            if (e.target.tagName === 'LI') {
+                e.preventDefault();
+                videoPlayerContainer.hidden = false;
+                videoPlayer.pause();
+                videoPlayer.querySelector('source').setAttribute('src', `http://localhost:3000/${e.target.dataset.url}`);
+                videoPlayer.load();
+                videoPlayer.play();
+            }
+        })
+
+    })();
+</script>
+</body>
+</html>
