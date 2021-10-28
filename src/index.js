@@ -3,7 +3,7 @@ const { createReadStream, readdirSync, createWriteStream } = require('fs')
 const { join } = require('path');
 const { v4: uuidv4 } = require('uuid');
 
-const hostname = '127.0.0.1';
+const hostname = '0.0.0.0';
 const port = process.env.PORT || 3000;
 const fullHost = `http://${hostname}:${port}/`;
 
