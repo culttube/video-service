@@ -1,5 +1,5 @@
 const http = require('http');
-const { createReadStream, readdirSync, createWriteStream } = require('fs')
+const { createReadStream, readdirSync, createWriteStream, statSync } = require('fs')
 const { join } = require('path');
 const { v4: uuidv4 } = require('uuid');
 
@@ -70,12 +70,60 @@ server.on('request', async (req, res) => {
     if (isGetMethod && pathname.match(idRegexp)) {
 
         try {
-            const readStream = createReadStream(join(storage, `${pathname}${extension}`));
 
-            readStream.on('open', () => res.setHeader('Content-Type', 'video/mp4'));
-            readStream.on('error', err => handleError(res, 404, err))
+            const file = join(storage, `${pathname}${extension}`);
 
-            return readStream.pipe(res);
+            const { size } = await statSync(file);
+
+            const range = req.headers.range;
+
+            if (range) {
+
+                /** Extracting Start and End value from Range Header */
+                let [start, end] = range.replace(/bytes=/, "").split("-");
+                start = parseInt(start, 10);
+                end = end ? parseInt(end, 10) : size - 1;
+
+                if (!isNaN(start) && isNaN(end)) {
+                    start = start;
+                    end = size - 1;
+                }
+                if (isNaN(start) && !isNaN(end)) {
+                    start = size - end;
+                    end = size - 1;
+                }
+
+                // Handle unavailable range request
+                if (start >= size || end >= size) {
+                    // Return the 416 Range Not Satisfiable.
+                    res.writeHead(416, {
+                        "Content-Range": `bytes */${size}`
+                    });
+                    return res.end();
+                }
+
+                res.writeHead(206, {
+                    "Content-Range": `bytes ${start}-${end}/${size}`,
+                    "Accept-Ranges": "bytes",
+                    "Content-Length": end - start + 1,
+                    "Content-Type": "video/mp4"
+                });
+
+                const readStream = createReadStream(file, { start: start, end: end });
+
+                return readStream.pipe(res);
+
+
+            } else {
+
+                const readStream = createReadStream(file);
+
+                readStream.on('open', () => res.setHeader('Content-Type', 'video/mp4'));
+                readStream.on('error', err => handleError(res, 404, err))
+
+                return readStream.pipe(res);
+
+            }
 
         } catch (err) {
             return handleError(res, 500, err)
