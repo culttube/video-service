@@ -48,7 +48,7 @@
                 return;
             }
             try {
-                const res = await fetch('http://localhost:3000/upload', {
+                const res = await fetch('/upload', {
                     method: 'post',
                     body: data.get('video'),
                 }).then(r => r.json());
@@ -70,7 +70,7 @@
 
 
         const fetchList = async () => {
-            const result = await fetch('http://localhost:3000');
+            const result = await fetch('/list');
             const {data} = await result.json();
 
             data.forEach(append)
@@ -92,7 +92,7 @@
                 e.preventDefault();
                 videoPlayerContainer.hidden = false;
                 videoPlayer.pause();
-                videoPlayer.querySelector('source').setAttribute('src', `http://localhost:3000/${e.target.dataset.url}`);
+                videoPlayer.querySelector('source').setAttribute('src', `/${e.target.dataset.url}`);
                 videoPlayer.load();
                 videoPlayer.play();
             }

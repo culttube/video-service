@@ -4,7 +4,7 @@ const { join } = require('path');
 const { v4: uuidv4 } = require('uuid');
 
 const hostname = '127.0.0.1';
-const port = 3000;
+const port = process.env.PORT || 3000;
 const fullHost = `http://${hostname}:${port}/`;
 
 const server = http.createServer();
@@ -49,7 +49,7 @@ server.on('request', async (req, res) => {
     const isGetMethod = req.method === 'GET';
     const isPostMethod = req.method === 'POST';
 
-    if (isGetMethod && pathname === '/') {
+    if (isGetMethod && pathname === '/list') {
 
         try {
             const files = readdirSync(storage);
@@ -107,7 +107,7 @@ server.on('request', async (req, res) => {
     }
 
 
-    if (isGetMethod && pathname === '/client') {
+    if (isGetMethod && pathname === '/') {
         const stream = createReadStream(join(process.cwd(), 'public', 'index.html'))
         return stream.pipe(res)
     }
